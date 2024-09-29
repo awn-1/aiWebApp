@@ -1,0 +1,11 @@
+# Ignore node_modules directory
+.env
+.env.local
+.DS_Store
+frontend/.DS_Store
+frontend/src/.DS_Store
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+*/package.json
+*/package-lock.json
