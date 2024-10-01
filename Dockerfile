@@ -17,3 +17,4 @@ WORKDIR /usr/src/app/backend
 
 # Start the application
 CMD ["npm", "start"]
+
