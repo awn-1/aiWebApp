@@ -49,12 +49,19 @@ app.post('/api/chat', async (req, res) => {
       }
     );
 
-    console.log('Claude API response:', response.data);
+    console.log('Claude API response:', JSON.stringify(response.data, null, 2));
     res.json({ reply: response.data.content[0].text });
   } catch (error) {
-    console.error('Error calling Claude API:', error.response ? error.response.data : error.message);
-    console.error('Full error object:', error);
-    res.status(500).json({ error: 'An error occurred while processing your request.' });
+    console.error('Error calling Claude API:', error.message);
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+      console.error('Response status:', error.response.status);
+      console.error('Response headers:', error.response.headers);
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+    }
+    console.error('Error config:', error.config);
+    res.status(500).json({ error: 'An error occurred while processing your request.', details: error.message });
   }
 });
 
