@@ -16,11 +16,10 @@ app.post('/api/chat', async (req, res) => {
     const { messages } = req.body;
     console.log('Received messages:', messages);
 
-    // Format messages for Claude API
     const formattedMessages = messages
       .filter(msg => msg.text && (msg.is_user !== undefined))
       .map(msg => ({
-        role: msg.is_user ? "user" : "assistant", // Changed "human" to "user"
+        role: msg.is_user ? "user" : "assistant",
         content: msg.text
       }));
 
@@ -45,7 +44,7 @@ app.post('/api/chat', async (req, res) => {
       },
       {
         headers: headers,
-        timeout: 30000 // 30 seconds timeout
+        timeout: 30000
       }
     );
 
@@ -58,13 +57,11 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-
-// Serve static files from the React app
 app.use(express.static(path.join(__dirname, '../frontend/build')));
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8081;
 app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));

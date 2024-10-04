@@ -1,11 +1,14 @@
 {
   "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "aws_beanstalk/current-app:latest",
+    "Update": "true"
+  },
   "Ports": [
     {
-      "ContainerPort": "3001",
+      "ContainerPort": "8081",
       "HostPort": "80"
     }
   ],
-  "Volumes": [],
   "Logging": "/var/log/nginx"
 }

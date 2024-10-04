@@ -1,10 +1,6 @@
 FROM node:18
 WORKDIR /usr/src/app
 
-# edit to force steps rather than use cache
-RUN ls
-
-
 # Copy package.json files
 COPY frontend/package*.json ./frontend/
 COPY backend/package*.json ./backend/
@@ -20,8 +16,11 @@ COPY backend ./backend
 # Build frontend
 RUN cd frontend && npm run build
 
+# Copy Dockerrun.aws.json
+COPY Dockerrun.aws.json ./
+
 # Set working directory to backend
 WORKDIR /usr/src/app/backend
 
-EXPOSE 3001
+EXPOSE 8081
 CMD ["node", "server.js"]
