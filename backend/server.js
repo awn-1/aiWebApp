@@ -11,6 +11,7 @@ app.use(express.json());
 const ANTHROPIC_API_KEY = process.env.CLAUDE_API_KEY;
 console.log('API Key (first 10 characters):', ANTHROPIC_API_KEY ? ANTHROPIC_API_KEY.substring(0, 10) + '...' : 'Not set');
 
+// API routes should come before the static file serving
 app.post('/api/chat', async (req, res) => {
   try {
     const { messages } = req.body;
@@ -57,8 +58,11 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+// Serve static files from the React app
 app.use(express.static(path.join(__dirname, '../frontend/build')));
 
+// The "catchall" handler: for any request that doesn't
+// match one above, send back React's index.html file.
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
 });
