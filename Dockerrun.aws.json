@@ -1,14 +1,15 @@
 {
   "AWSEBDockerrunVersion": "1",
+  "Ports": [
+    {
+      "ContainerPort": "3001",
+      "HostPort": "80"
+    }
+  ],
   "Image": {
     "Name": "my-chat-app:latest",
     "Update": "true"
   },
-  "Ports": [
-    {
-      "ContainerPort": "3001"
-    }
-  ],
   "Volumes": [],
   "Logging": "/var/log/nginx"
 }
