@@ -23,8 +23,5 @@ RUN cd frontend && npm run build
 # Set working directory to backend
 WORKDIR /usr/src/app/backend
 
-# Expose backend port
 EXPOSE 3001
-
-# Start command
-CMD ["npm", "start"]
+CMD ["node", "server.js"]

@@ -6,10 +6,6 @@
       "HostPort": "80"
     }
   ],
-  "Image": {
-    "Name": "my-chat-app:latest",
-    "Update": "true"
-  },
   "Volumes": [],
   "Logging": "/var/log/nginx"
 }
