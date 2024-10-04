@@ -1,13 +1,21 @@
 FROM node:18
-
 WORKDIR /usr/src/app
 
-# Copy entire project
-COPY . .
+# edit to force steps rather than use cache
+RUN ls
+
+
+# Copy package.json files
+COPY frontend/package*.json ./frontend/
+COPY backend/package*.json ./backend/
 
 # Install dependencies
 RUN cd frontend && npm install
 RUN cd backend && npm install
+
+# Copy source files
+COPY frontend ./frontend
+COPY backend ./backend
 
 # Build frontend
 RUN cd frontend && npm run build
@@ -15,8 +23,8 @@ RUN cd frontend && npm run build
 # Set working directory to backend
 WORKDIR /usr/src/app/backend
 
-# Expose the port
+# Expose backend port
 EXPOSE 3001
-# Start the application
-CMD ["npm", "start"]
 
+# Start command
+CMD ["npm", "start"]
