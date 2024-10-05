@@ -86,7 +86,7 @@ function Chat() {
   };
 
   const callClaudeAPI = async (messages) => {
-    const response = await fetch('http://localhost:3001/api/chat', {
+    const response = await fetch('http://localhost:8081/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

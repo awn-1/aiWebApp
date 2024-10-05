@@ -1,0 +1,14 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "awn3/ai-image:latest",
+    "Update": "true"
+  },
+  "Ports": [
+    {
+      "ContainerPort": "8081",  // Match this to the port your backend is running on
+      "HostPort": "80"
+    }
+  ],
+  "Logging": "/var/log/nginx"
+}
