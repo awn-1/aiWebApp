@@ -3,10 +3,19 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 require('dotenv').config();
+const PORT = 8081;
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+
+app.use(cors({
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 
 const ANTHROPIC_API_KEY = process.env.CLAUDE_API_KEY;
 console.log('API Key (first 10 characters):', ANTHROPIC_API_KEY ? ANTHROPIC_API_KEY.substring(0, 10) + '...' : 'Not set');
@@ -63,4 +72,22 @@ app.post('/api/chat', async (req, res) => {
     console.error('Error config:', error.config);
     res.status(500).json({ error: 'An error occurred while processing your request.', details: error.message });
   }
+});
+
+// Start the server and log any errors
+app.listen(PORT, '0.0.0.0', (err) => {
+  if (err) {
+    console.error(`Failed to start server on port ${PORT}:`, err);
+  } else {
+    console.log(`Server is running and listening on port ${PORT}`);
+  }
+});
+
+// Global error handler
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
