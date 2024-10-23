@@ -174,3 +174,35 @@ button[type="button"]:hover {
     padding: 10px 15px;
   }
 }
+
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 70px);
+  font-size: 1.2rem;
+  color: #4A90E2;
+}
+
+/* Update existing component styles to account for navigation bar */
+.chat-container,
+.auth-page,
+.profile-page {
+  padding-top: 20px;
+  min-height: calc(100vh - 70px);
+}
+
+@media (max-width: 640px) {
+  .chat-container,
+  .auth-page,
+  .profile-page {
+    min-height: calc(100vh - 60px);
+  }
+}

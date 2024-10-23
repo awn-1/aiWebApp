@@ -1,0 +1,126 @@
+.main-nav {
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+  }
+  
+  .nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    height: 70px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .nav-brand {
+    display: flex;
+    align-items: center;
+  }
+  
+  .brand-link {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #4A90E2;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  
+  .brand-link:hover {
+    color: #357ABD;
+  }
+  
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  
+  .nav-link {
+    text-decoration: none;
+    color: #4a5568;
+    font-weight: 500;
+    font-size: 1rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+  
+  .nav-link:hover {
+    color: #4A90E2;
+    background-color: rgba(74, 144, 226, 0.1);
+  }
+  
+  .nav-link.active {
+    color: #4A90E2;
+    font-weight: 600;
+  }
+  
+  .nav-button {
+    padding: 0.5rem 1.25rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .nav-button.sign-in {
+    background-color: #4A90E2;
+    color: white;
+    border: none;
+  }
+  
+  .nav-button.sign-in:hover {
+    background-color: #357ABD;
+  }
+  
+  .nav-button.sign-out {
+    background-color: transparent;
+    color: #EF4444;
+    border: 1px solid #EF4444;
+  }
+  
+  .nav-button.sign-out:hover {
+    background-color: #FEE2E2;
+  }
+  
+  /* Add margin-top to main content to account for fixed navbar */
+  .main-content {
+    margin-top: 70px;
+    min-height: calc(100vh - 70px);
+  }
+  
+  @media (max-width: 640px) {
+    .nav-container {
+      height: 60px;
+      padding: 0 15px;
+    }
+  
+    .brand-link {
+      font-size: 1.25rem;
+    }
+  
+    .nav-links {
+      gap: 1rem;
+    }
+  
+    .nav-link {
+      font-size: 0.9rem;
+    }
+  
+    .nav-button {
+      padding: 0.4rem 1rem;
+      font-size: 0.9rem;
+    }
+  
+    .main-content {
+      margin-top: 60px;
+      min-height: calc(100vh - 60px);
+    }
+  }
