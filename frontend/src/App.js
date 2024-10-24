@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './components/AuthContext';
 import Navigation from './components/Navigation';
 import Home from './components/Home';
-import Chat from './components/Chat';
+import ChatLayout from './components/ChatLayout';  // Import ChatLayout instead of Chat
 import Auth from './components/Auth';
 import UserProfile from './components/UserProfile';
 import './App.css';
@@ -37,7 +37,7 @@ function App() {
                 path="/chat" 
                 element={
                   <ProtectedRoute>
-                    <Chat />
+                    <ChatLayout />
                   </ProtectedRoute>
                 } 
               />
