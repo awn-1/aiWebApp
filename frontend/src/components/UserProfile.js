@@ -7,6 +7,9 @@ const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+const CHARACTER_LIMIT = 1000;
+const WARNING_THRESHOLD = 900;
+
 function UserProfile() {
   const navigate = useNavigate();
   const [session, setSession] = useState(null);
@@ -19,6 +22,10 @@ function UserProfile() {
     gender: '',
     general_information: ''
   });
+
+  const remainingCharacters = CHARACTER_LIMIT - (profile.general_information?.length || 0);
+  const isApproachingLimit = remainingCharacters <= (CHARACTER_LIMIT - WARNING_THRESHOLD);
+  const hasReachedLimit = remainingCharacters === 0;
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -85,7 +92,14 @@ function UserProfile() {
   };
 
   const handleChange = (e) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'general_information') {
+      if (value.length <= CHARACTER_LIMIT) {
+        setProfile({ ...profile, [name]: value });
+      }
+    } else {
+      setProfile({ ...profile, [name]: value });
+    }
   };
 
   const handleSignOut = async () => {
@@ -178,15 +192,21 @@ function UserProfile() {
           <div className="form-section">
             <h2>Additional Information</h2>
             <div className="form-group">
-              <label htmlFor="general_information">About Me</label>
+              <label htmlFor="general_information">
+                About Me
+                <span className={`character-count ${isApproachingLimit ? 'warning' : ''} ${hasReachedLimit ? 'limit-reached' : ''}`}>
+                  {remainingCharacters} characters remaining
+                </span>
+              </label>
               <textarea
                 id="general_information"
                 name="general_information"
                 value={profile.general_information || ''}
                 onChange={handleChange}
                 placeholder="Tell us about yourself..."
-                className="form-input textarea"
+                className={`form-input textarea ${isApproachingLimit ? 'warning-border' : ''} ${hasReachedLimit ? 'limit-reached-border' : ''}`}
                 rows="4"
+                maxLength={CHARACTER_LIMIT}
               />
             </div>
           </div>

@@ -65,11 +65,27 @@
   }
   
   .form-group label {
-    display: block;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 8px;
     color: #4a5568;
     font-weight: 500;
     font-size: 0.95rem;
+  }
+  
+  .character-count {
+    font-size: 0.85rem;
+    color: #718096;
+    transition: color 0.2s ease;
+  }
+  
+  .character-count.warning {
+    color: #D97706;
+  }
+  
+  .character-count.limit-reached {
+    color: #DC2626;
   }
   
   .form-input {
@@ -80,6 +96,14 @@
     font-size: 1rem;
     transition: all 0.2s;
     background-color: #fff;
+  }
+  
+  .form-input.warning-border {
+    border-color: #D97706;
+  }
+  
+  .form-input.limit-reached-border {
+    border-color: #DC2626;
   }
   
   .form-input:focus {
