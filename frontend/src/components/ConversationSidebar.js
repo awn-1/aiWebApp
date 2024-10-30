@@ -6,7 +6,7 @@ import './ConversationSidebar.css';
 // Create Alert Dialog Component inline since we can't use the shadcn import
 const AlertDialog = ({ open, onOpenChange, children }) => {
   if (!open) return null;
-  
+
   return (
     <div className="alert-dialog-overlay" onClick={() => onOpenChange(false)}>
       <div className="alert-dialog-content" onClick={e => e.stopPropagation()}>
@@ -44,57 +44,56 @@ const AlertDialogAction = ({ children, onClick, className }) => (
   <button className={`alert-dialog-button action ${className}`} onClick={onClick}>{children}</button>
 );
 
-
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const ConversationSidebar = ({ activeConversationId, onConversationSelect, onNewConversation }) => {
-    const [conversations, setConversations] = useState([]);
-    const [editingId, setEditingId] = useState(null);
-    const [editingTitle, setEditingTitle] = useState('');
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [conversationToDelete, setConversationToDelete] = useState(null);
-    const [isDeleting, setIsDeleting] = useState(false);
-  
-    useEffect(() => {
-      fetchConversations();
-      
-      // Subscribe to changes
-      const channel = supabase
-        .channel('conversation-changes')
-        .on('postgres_changes', 
-          { event: '*', schema: 'public', table: 'conversations' }, 
-          () => fetchConversations()
-        )
-        .subscribe();
-  
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }, []);
+  const [conversations, setConversations] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-    const fetchConversations = async () => {
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (!session?.user?.id) return;
-    
-          const { data, error } = await supabase
-            .from('conversations')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .order('created_at', { ascending: false });
-    
-          if (error) throw error;
-          setConversations(data || []);
-        } catch (error) {
-          console.error('Error fetching conversations:', error);
-        }
-      };
+  useEffect(() => {
+    fetchConversations();
+
+    // Subscribe to changes
+    const channel = supabase
+      .channel('conversation-changes')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'conversations' },
+        () => fetchConversations()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchConversations = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) return;
+
+      const { data, error } = await supabase
+        .from('conversations')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setConversations(data || []);
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+    }
+  };
 
   const startEditing = (conversation) => {
     setEditingId(conversation.id);
-    setEditingTitle(conversation.title);
+    setEditingTitle(conversation.title || 'New Conversation');
   };
 
   const cancelEditing = () => {
@@ -104,14 +103,23 @@ const ConversationSidebar = ({ activeConversationId, onConversationSelect, onNew
 
   const saveTitle = async (id) => {
     try {
+      const newTitle = editingTitle.trim() || 'New Conversation';
+
       const { error } = await supabase
         .from('conversations')
-        .update({ title: editingTitle.trim() || 'New Conversation' })
+        .update({ title: newTitle })
         .eq('id', id);
 
       if (error) throw error;
+
+      // Update local state immediately
+      setConversations(prevConversations =>
+        prevConversations.map(conv =>
+          conv.id === id ? { ...conv, title: newTitle } : conv
+        )
+      );
+
       cancelEditing();
-      await fetchConversations();
     } catch (error) {
       console.error('Error updating conversation title:', error);
     }
@@ -127,36 +135,29 @@ const ConversationSidebar = ({ activeConversationId, onConversationSelect, onNew
 
     try {
       setIsDeleting(true);
-      console.log('Deleting conversation:', conversationToDelete.id);
 
-      // First delete all message chunks for this conversation
+      // Delete all message chunks
       const { error: messagesError } = await supabase
         .from('message_chunks')
         .delete()
         .eq('chat_id', conversationToDelete.id);
 
-      if (messagesError) {
-        console.error('Error deleting messages:', messagesError);
-        throw messagesError;
-      }
+      if (messagesError) throw messagesError;
 
-      // Then delete the conversation
+      // Delete the conversation
       const { error: conversationError } = await supabase
         .from('conversations')
         .delete()
         .eq('id', conversationToDelete.id);
 
-      if (conversationError) {
-        console.error('Error deleting conversation:', conversationError);
-        throw conversationError;
-      }
+      if (conversationError) throw conversationError;
 
       // Update local state
-      setConversations(prevConversations => 
+      setConversations(prevConversations =>
         prevConversations.filter(c => c.id !== conversationToDelete.id)
       );
 
-      // If this was the active conversation, select another one
+      // If active conversation was deleted, select another one
       if (activeConversationId === conversationToDelete.id) {
         const remainingConversations = conversations.filter(
           c => c.id !== conversationToDelete.id
@@ -167,9 +168,6 @@ const ConversationSidebar = ({ activeConversationId, onConversationSelect, onNew
           onConversationSelect(null);
         }
       }
-
-      console.log('Successfully deleted conversation');
-
     } catch (error) {
       console.error('Error in deletion process:', error);
     } finally {
@@ -178,8 +176,6 @@ const ConversationSidebar = ({ activeConversationId, onConversationSelect, onNew
       setConversationToDelete(null);
     }
   };
-
-
 
   return (
     <div className="conversation-sidebar">
@@ -202,6 +198,11 @@ const ConversationSidebar = ({ activeConversationId, onConversationSelect, onNew
                   onChange={(e) => setEditingTitle(e.target.value)}
                   className="edit-title-input"
                   autoFocus
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      saveTitle(conversation.id);
+                    }
+                  }}
                 />
                 <button
                   onClick={() => saveTitle(conversation.id)}
@@ -233,14 +234,20 @@ const ConversationSidebar = ({ activeConversationId, onConversationSelect, onNew
                 </button>
                 <div className="conversation-actions">
                   <button
-                    onClick={() => startEditing(conversation)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startEditing(conversation);
+                    }}
                     className="action-button"
                     title="Rename"
                   >
                     <Pencil size={16} />
                   </button>
                   <button
-                    onClick={() => confirmDelete(conversation)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      confirmDelete(conversation);
+                    }}
                     className="action-button delete"
                     title="Delete"
                   >
@@ -263,7 +270,7 @@ const ConversationSidebar = ({ activeConversationId, onConversationSelect, onNew
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setDeleteDialogOpen(false)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDelete}
               className="delete-button"
               disabled={isDeleting}

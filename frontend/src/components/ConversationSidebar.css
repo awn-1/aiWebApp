@@ -241,3 +241,66 @@
 .alert-dialog-hidden {
   display: none;
 }
+
+.edit-title {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.25rem;
+}
+
+.edit-input {
+  flex: 1;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.edit-btn {
+  padding: 0.25rem;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.edit-btn:hover {
+  background: #f3f4f6;
+}
+
+.conversation-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem;
+}
+
+.conversation-actions {
+  display: flex;
+  gap: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.conversation-item:hover .conversation-actions {
+  opacity: 1;
+}
+
+.action-btn {
+  padding: 0.25rem;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.action-btn:hover {
+  background: #f3f4f6;
+}
+
+.action-btn.delete:hover {
+  color: #ef4444;
+  background: #fee2e2;
+}

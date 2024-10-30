@@ -1,3 +1,4 @@
+// Chat.js
 import React, { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import ReactMarkdown from 'react-markdown';
@@ -15,14 +16,14 @@ function Chat({ conversationId }) {
   const messageCache = useRef({});
   const writeQueue = useRef([]);
   const messagesEndRef = useRef(null);
-  const inputRef = useRef(null);  // Add ref for input field
+  const textareaRef = useRef(null);
 
   useEffect(() => {
     if (conversationId) {
       fetchMessages();
       fetchUserProfile();
     } else {
-      setMessages([]);  // Clear messages when no conversation is selected
+      setMessages([]);
     }
     const flushInterval = setInterval(flushCache, 10000);
     return () => {
@@ -35,25 +36,22 @@ function Chat({ conversationId }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Focus input when conversation changes
   useEffect(() => {
-    if (conversationId && inputRef.current) {
-      inputRef.current.focus();
+    adjustTextareaHeight();
+  }, [input]);
+
+  const adjustTextareaHeight = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = '40px';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-  }, [conversationId]);
+  };
 
   const fetchUserProfile = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user?.id) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (error) throw error;
-        setUserProfile(data);
+      const profileData = localStorage.getItem('userProfile');
+      if (profileData) {
+        setUserProfile(JSON.parse(profileData));
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -68,7 +66,7 @@ function Chat({ conversationId }) {
         .select('*')
         .eq('chat_id', conversationId)
         .order('chunk', { ascending: true });
-        
+
       if (error) throw error;
       const flattenedMessages = data.flatMap(chunk => JSON.parse(chunk.messages));
       setMessages(flattenedMessages);
@@ -85,16 +83,16 @@ function Chat({ conversationId }) {
 
   const flushCache = async () => {
     if (!conversationId) return;
-    
+
     const uniqueChunks = [...new Set(writeQueue.current)];
     for (const chunk of uniqueChunks) {
       if (messageCache.current[chunk]) {
         try {
           await supabase
             .from('message_chunks')
-            .insert({ 
-              chat_id: conversationId, 
-              chunk: chunk, 
+            .insert({
+              chat_id: conversationId,
+              chunk: chunk,
               messages: JSON.stringify(messageCache.current[chunk])
             });
           delete messageCache.current[chunk];
@@ -113,47 +111,89 @@ function Chat({ conversationId }) {
     setIsLoading(true);
     const userMessage = { text: input, is_user: true, timestamp: new Date().toISOString() };
     setMessages(prevMessages => [...prevMessages, userMessage]);
-    addMessageToCache(userMessage);
     setInput('');
-    
+
     try {
-      await flushCache();
+      // Get profile data and format it for context
+      let profileData = {};
+      try {
+        const savedProfile = localStorage.getItem('userProfile');
+        if (savedProfile) {
+          profileData = JSON.parse(savedProfile);
+
+          // Filter out empty fields and format nicely
+          profileData = Object.fromEntries(
+            Object.entries(profileData)
+              .filter(([_, value]) => value?.trim())
+              .map(([key, value]) => [
+                // Convert camelCase to readable format
+                key.replace(/([A-Z])/g, ' $1').toLowerCase(),
+                value.trim()
+              ])
+          );
+        }
+      } catch (error) {
+        console.error('Error parsing profile data:', error);
+      }
+
       const response = await fetch('http://localhost:8081/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           messages: [...messages, userMessage],
-          profile: userProfile
+          profile: profileData,
+          context: {
+            // Add any additional context that might be helpful
+            currentTimestamp: new Date().toISOString(),
+            messageCount: messages.length + 1,
+            hasProfileData: Object.keys(profileData).length > 0
+          }
         }),
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to get response from AI');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to get response from AI');
       }
-      
+
       const data = await response.json();
-      const aiResponse = { 
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      const aiResponse = {
         text: data.reply,
         is_user: false,
         timestamp: new Date().toISOString()
       };
+
       setMessages(prevMessages => [...prevMessages, aiResponse]);
+
+      // Save both messages to cache
+      addMessageToCache(userMessage);
       addMessageToCache(aiResponse);
       await flushCache();
+
     } catch (error) {
       console.error('Chat error:', error);
-      const errorMessage = { 
+      const errorMessage = {
         text: error.message || "Sorry, I couldn't process that request. Please try again.",
         is_user: false,
         timestamp: new Date().toISOString()
       };
       setMessages(prevMessages => [...prevMessages, errorMessage]);
       addMessageToCache(errorMessage);
-      await flushCache();
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
     }
   };
 
@@ -161,8 +201,8 @@ function Chat({ conversationId }) {
     <div className="chat-container">
       <div className="messages-container">
         {messages.map((msg, index) => (
-          <div 
-            key={index} 
+          <div
+            key={index}
             className={`message ${msg.is_user ? 'user-message' : 'ai-message'}`}
           >
             <div className="message-content">
@@ -178,14 +218,15 @@ function Chat({ conversationId }) {
       </div>
 
       <form onSubmit={handleSubmit} className="input-form">
-        <input
-          ref={inputRef}  // Add ref to input
-          type="text"
+        <textarea
+          ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder={conversationId ? "Type your message..." : "Select or create a conversation to start chatting"}
           disabled={!conversationId || isLoading}
           className="message-input"
+          rows={1}
         />
         <button
           type="submit"

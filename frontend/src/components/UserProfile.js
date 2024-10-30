@@ -1,40 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
+import * as Tabs from '@radix-ui/react-tabs';
+import { LogOut } from 'lucide-react';
 import './UserProfile.css';
+import LifeDomainsContent from './LifeDomainsContent.js'
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const CHARACTER_LIMIT = 1000;
-const WARNING_THRESHOLD = 900;
-
 function UserProfile() {
   const navigate = useNavigate();
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [profile, setProfile] = useState({
-    name: '',
-    age: '',
-    gender: '',
-    general_information: ''
-  });
-
-  const remainingCharacters = CHARACTER_LIMIT - (profile.general_information?.length || 0);
-  const isApproachingLimit = remainingCharacters <= (CHARACTER_LIMIT - WARNING_THRESHOLD);
-  const hasReachedLimit = remainingCharacters === 0;
+  const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('life-domains');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session) {
-        fetchProfile(session.user.id);
-      } else {
+      if (!session) {
         navigate('/auth');
       }
+      setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -47,184 +36,102 @@ function UserProfile() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const fetchProfile = async (userId) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) throw error;
-
-      if (data) {
-        setProfile(data);
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: session.user.id,
-          ...profile,
-          updated_at: new Date().toISOString()
-        });
-
-      if (error) throw error;
-      
-      setSuccessMessage('Profile updated successfully!');
-      setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (error) {
-      console.error('Error updating profile:', error.message);
-      alert('Error updating profile!');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === 'general_information') {
-      if (value.length <= CHARACTER_LIMIT) {
-        setProfile({ ...profile, [name]: value });
-      }
-    } else {
-      setProfile({ ...profile, [name]: value });
-    }
-  };
-
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
       navigate('/auth');
     } catch (error) {
-      console.error('Error signing out:', error.message);
+      setError('Error signing out: ' + error.message);
     }
   };
 
   if (loading) {
     return (
-      <div className="profile-loading">
-        <div className="loading-spinner"></div>
-        <p>Loading your profile...</p>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="profile-page">
-      <div className="profile-header">
-        <h1>Profile Settings</h1>
-        <p className="user-email">{session?.user?.email}</p>
-      </div>
-
-      {successMessage && (
-        <div className="success-message">
-          <svg xmlns="http://www.w3.org/2000/svg" className="success-icon" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-          </svg>
-          {successMessage}
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Profile Settings</h1>
+          {session?.user?.email && (
+            <p className="mt-2 text-gray-600">{session.user.email}</p>
+          )}
+          {error && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-600">{error}</p>
+            </div>
+          )}
         </div>
-      )}
 
-      <div className="profile-container">
-        <form onSubmit={handleSubmit} className="profile-form">
-          <div className="form-section">
-            <h2>Personal Information</h2>
-            
-            <div className="form-group">
-              <label htmlFor="name">Full Name</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={profile.name || ''}
-                onChange={handleChange}
-                placeholder="Enter your full name"
-                className="form-input"
-              />
+        <div className="bg-white rounded-lg shadow">
+          <Tabs.Root value={activeTab} onValueChange={setActiveTab}>
+            <Tabs.List className="flex border-b border-gray-200">
+              <Tabs.Trigger
+                value="life-domains"
+                className={`px-4 py-2 text-sm font-medium ${activeTab === 'life-domains'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
+                  }`}
+              >
+                Life Domains
+              </Tabs.Trigger>
+              <Tabs.Trigger
+                value="account"
+                className={`px-4 py-2 text-sm font-medium ${activeTab === 'account'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
+                  }`}
+              >
+                Account Settings
+              </Tabs.Trigger>
+            </Tabs.List>
+
+            <div className="p-6">
+              <Tabs.Content value="life-domains">
+                <LifeDomainsContent />
+              </Tabs.Content>
+
+              <Tabs.Content value="account">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-900">Email Address</h3>
+                      <p className="text-sm text-gray-600">{session?.user?.email}</p>
+                    </div>
+                    <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
+                      Update Email
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-900">Password</h3>
+                      <p className="text-sm text-gray-600">••••••••</p>
+                    </div>
+                    <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
+                      Change Password
+                    </button>
+                  </div>
+
+                  <div className="pt-6 border-t border-gray-200">
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 flex items-center justify-center"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              </Tabs.Content>
             </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="age">Age</label>
-                <input
-                  type="number"
-                  id="age"
-                  name="age"
-                  value={profile.age || ''}
-                  onChange={handleChange}
-                  placeholder="Enter your age"
-                  className="form-input"
-                  min="0"
-                  max="150"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="gender">Gender</label>
-                <select
-                  id="gender"
-                  name="gender"
-                  value={profile.gender || ''}
-                  onChange={handleChange}
-                  className="form-input"
-                >
-                  <option value="">Select gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                  <option value="prefer_not_to_say">Prefer not to say</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div className="form-section">
-            <h2>Additional Information</h2>
-            <div className="form-group">
-              <label htmlFor="general_information">
-                About Me
-                <span className={`character-count ${isApproachingLimit ? 'warning' : ''} ${hasReachedLimit ? 'limit-reached' : ''}`}>
-                  {remainingCharacters} characters remaining
-                </span>
-              </label>
-              <textarea
-                id="general_information"
-                name="general_information"
-                value={profile.general_information || ''}
-                onChange={handleChange}
-                placeholder="Tell us about yourself..."
-                className={`form-input textarea ${isApproachingLimit ? 'warning-border' : ''} ${hasReachedLimit ? 'limit-reached-border' : ''}`}
-                rows="4"
-                maxLength={CHARACTER_LIMIT}
-              />
-            </div>
-          </div>
-
-          <div className="form-actions">
-            <button type="submit" className="save-button" disabled={saving}>
-              {saving ? (
-                <>
-                  <span className="button-spinner"></span>
-                  Saving...
-                </>
-              ) : 'Save Changes'}
-            </button>
-            <button type="button" onClick={handleSignOut} className="sign-out-button">
-              Sign Out
-            </button>
-          </div>
-        </form>
+          </Tabs.Root>
+        </div>
       </div>
     </div>
   );

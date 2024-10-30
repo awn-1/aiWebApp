@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Chat from './Chat';
+import './Chat.css';
 import ConversationSidebar from './ConversationSidebar';
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
@@ -17,11 +18,8 @@ const ChatLayout = () => {
 
   const initializeConversation = async () => {
     try {
-      console.log('Initializing conversation...');
       const { data: { session } } = await supabase.auth.getSession();
-      
       if (!session?.user?.id) {
-        console.log('No user session found');
         setLoading(false);
         return;
       }
@@ -35,8 +33,7 @@ const ChatLayout = () => {
 
       if (error) throw error;
 
-      if (conversations && conversations.length > 0) {
-        console.log('Found existing conversation:', conversations[0].id);
+      if (conversations?.length > 0) {
         setActiveConversationId(conversations[0].id);
       } else {
         const { data: newConversation, error: createError } = await supabase
@@ -49,11 +46,10 @@ const ChatLayout = () => {
           .single();
 
         if (createError) throw createError;
-        console.log('Created new conversation:', newConversation.id);
         setActiveConversationId(newConversation.id);
       }
     } catch (error) {
-      console.error('Error initializing conversation:', error);
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
@@ -76,21 +72,21 @@ const ChatLayout = () => {
       if (error) throw error;
       setActiveConversationId(data.id);
     } catch (error) {
-      console.error('Error creating new conversation:', error);
+      console.error('Error:', error);
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-70px)]">
-        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="loading-screen">
+        <div className="loading-spinner"></div>
       </div>
     );
   }
 
   return (
     <div className="chat-layout">
-      <div className="chat-main-content">
+      <div className="chat-main">
         <Chat conversationId={activeConversationId} />
       </div>
       <ConversationSidebar

@@ -1,0 +1,94 @@
+.form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.form-section {
+    width: 100%;
+    background: white;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.form-field-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.form-field {
+    width: 100%;
+    max-width: 42rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-field textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    resize: none;
+    transition: all 0.2s;
+}
+
+.form-field textarea:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: #ec4899;
+    border-color: #ec4899;
+}
+
+.form-field label {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #374151;
+    text-align: center;
+}
+
+.form-field .helper-text {
+    font-size: 0.875rem;
+    color: #6b7280;
+    text-align: center;
+    max-width: 42rem;
+}
+
+.save-button-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.save-button {
+    padding: 0.75rem 2rem;
+    background-color: #ec4899;
+    color: white;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.save-button:hover {
+    background-color: #db2777;
+}
+
+.save-button:focus {
+    ring: 4px;
+    ring-color: #fbcfe8;
+}
