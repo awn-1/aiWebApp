@@ -1,20 +1,33 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import './Home.css';  // Importing the CSS file for styles
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
+import './Home.css';
 
 function Home() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
   return (
     <div className="home-container">
-      <nav className="nav-bar">
-        <Link to="/" className="nav-link">Home</Link>
-        <Link to="/chat" className="nav-link">Chat with AI</Link>
-      </nav>
-
       <header className="hero-section">
         <div className="hero-content">
           <h1>Welcome to the AI Chat Assistant</h1>
           <p>Experience cutting-edge AI technology that assists you with smart conversations and helpful information.</p>
-          <Link to="/chat" className="cta-button">Start Chatting Now</Link>
+          {user ? (
+            <button 
+              onClick={() => navigate('/chat')} 
+              className="cta-button"
+            >
+              Start Chatting Now
+            </button>
+          ) : (
+            <button 
+              onClick={() => navigate('/auth')} 
+              className="cta-button"
+            >
+              Sign In to Chat
+            </button>
+          )}
         </div>
       </header>
 

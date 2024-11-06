@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* General layout styling */
 body {
   font-family: 'Roboto', sans-serif;
@@ -27,7 +31,8 @@ h2 {
   border-radius: 12px;
   display: flex;
   flex-direction: column;
-  height: 100%; /* Take the full height of the viewport */
+  height: 100%;
+  /* Take the full height of the viewport */
 }
 
 /* Chat messages */
@@ -35,12 +40,14 @@ h2 {
   background-color: #fafafa;
   padding: 20px;
   flex-grow: 1;
-  overflow-y: auto; /* Allow scrolling for messages */
+  overflow-y: auto;
+  /* Allow scrolling for messages */
   border-radius: 8px;
   box-shadow: inset 0px 0px 5px rgba(0, 0, 0, 0.05);
   margin-bottom: 20px;
   display: flex;
-  flex-direction: column; /* Display messages in normal order */
+  flex-direction: column;
+  /* Display messages in normal order */
 }
 
 /* User message (right-aligned) */
@@ -172,5 +179,38 @@ button[type="button"]:hover {
 
   button {
     padding: 10px 15px;
+  }
+}
+
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 70px);
+  font-size: 1.2rem;
+  color: #4A90E2;
+}
+
+/* Update existing component styles to account for navigation bar */
+.chat-container,
+.auth-page,
+.profile-page {
+  padding-top: 20px;
+  min-height: calc(100vh - 70px);
+}
+
+@media (max-width: 640px) {
+
+  .chat-container,
+  .auth-page,
+  .profile-page {
+    min-height: calc(100vh - 60px);
   }
 }
