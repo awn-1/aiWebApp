@@ -1,4 +1,5 @@
 import React from 'react';
+import { Toaster } from 'react-hot-toast';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './components/AuthContext';
 import Navigation from './components/Navigation';
@@ -30,6 +31,7 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="app-container">
+          <Toaster position="top-right" />
           <Navigation />
           <main className="main-content">
             <Routes>

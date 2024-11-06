@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Pencil, Trash2, Check, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 import './ConversationSidebar.css';
+
 
 // Create Alert Dialog Component inline since we can't use the shadcn import
 const AlertDialog = ({ open, onOpenChange, children }) => {
@@ -135,14 +137,18 @@ const ConversationSidebar = ({ activeConversationId, onConversationSelect, onNew
 
     try {
       setIsDeleting(true);
+      console.log('Starting deletion process for conversation:', conversationToDelete.id);
 
-      // Delete all message chunks
+      // Delete all message chunks first
       const { error: messagesError } = await supabase
         .from('message_chunks')
         .delete()
         .eq('chat_id', conversationToDelete.id);
 
-      if (messagesError) throw messagesError;
+      if (messagesError) {
+        console.error('Error deleting message chunks:', messagesError);
+        throw messagesError;
+      }
 
       // Delete the conversation
       const { error: conversationError } = await supabase
@@ -150,14 +156,17 @@ const ConversationSidebar = ({ activeConversationId, onConversationSelect, onNew
         .delete()
         .eq('id', conversationToDelete.id);
 
-      if (conversationError) throw conversationError;
+      if (conversationError) {
+        console.error('Error deleting conversation:', conversationError);
+        throw conversationError;
+      }
 
       // Update local state
       setConversations(prevConversations =>
         prevConversations.filter(c => c.id !== conversationToDelete.id)
       );
 
-      // If active conversation was deleted, select another one
+      // Handle active conversation selection
       if (activeConversationId === conversationToDelete.id) {
         const remainingConversations = conversations.filter(
           c => c.id !== conversationToDelete.id
@@ -168,14 +177,40 @@ const ConversationSidebar = ({ activeConversationId, onConversationSelect, onNew
           onConversationSelect(null);
         }
       }
+
+      toast.success('Conversation deleted successfully');
+
     } catch (error) {
       console.error('Error in deletion process:', error);
+      toast.error('Failed to delete conversation: ' + (error.message || 'Unknown error'));
     } finally {
       setIsDeleting(false);
       setDeleteDialogOpen(false);
       setConversationToDelete(null);
     }
   };
+
+  // Add subscription to listen for changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('conversation-changes')
+      .on('postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversations'
+        },
+        payload => {
+          console.log('Conversation change detected:', payload);
+          fetchConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchConversations]);
 
   return (
     <div className="conversation-sidebar">

@@ -67,7 +67,7 @@ app.post('/api/chat', async (req, res) => {
 
 ${formattedSections.join('\n\n')}
 
-Use this information to provide personalized and relevant responses while maintaining a natural conversation flow. Draw upon this context when appropriate but don't explicitly mention having this background information unless directly asked about it.`;
+Use this information to provide personalized and relevant responses while maintaining a natural conversation flow. Draw upon this context when appropriate but don't explicitly mention having this background information unless directly asked about it. Do not mention that you are an AI, the user knows that. Use the perspective and voice of a life coach/counselor`;
       }
     }
 
